@@ -24,7 +24,7 @@ class CalorieTracker {
         this.chartInstances = new Map();
         this.chartUpdateTimeout = null;
         this.currentPhoto = null;
-        this.foodRecognitionAPI = 'https://api.logmeal.es/v2/recognition/dish'; // Free food recognition API
+        this.foodRecognitionAPI = 'https://api.logmeal.es/v2/recognition/dish'; // LogMeal food recognition API
         
         this.init();
     }
@@ -806,15 +806,15 @@ class CalorieTracker {
         }
     }
 
-    async recognizeFoodWithAPI(base64Image) {
+        async recognizeFoodWithAPI(base64Image) {
         try {
-            // Try LogMeal API (free tier available)
-            const response = await fetch(this.foodRecognitionAPI, {
+            // Try LogMeal API with correct endpoint and format
+            const response = await fetch('https://api.logmeal.es/v2/recognition/dish', {
                 method: 'POST',
-                                   headers: {
-                       'Content-Type': 'application/json',
-                       'Authorization': 'Bearer b3821b19179215379e9323d686cd6a2bc4f95d58'
-                   },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer b3821b19179215379e9323d686cd6a2bc4f95d58'
+                },
                 body: JSON.stringify({
                     image: base64Image.split(',')[1] // Remove data:image/jpeg;base64, prefix
                 })
@@ -822,28 +822,70 @@ class CalorieTracker {
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('LogMeal API response:', data); // Debug log
+                return this.parseLogMealResponse(data);
+            } else {
+                console.log('LogMeal API error:', response.status, response.statusText);
+                const errorText = await response.text();
+                console.log('Error details:', errorText);
+            }
+        } catch (error) {
+            console.error('LogMeal API failed:', error);
+        }
+
+        // Try alternative LogMeal endpoint
+        try {
+            const response2 = await fetch('https://api.logmeal.es/v2/recognition/combo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer b3821b19179215379e9323d686cd6a2bc4f95d58'
+                },
+                body: JSON.stringify({
+                    image: base64Image.split(',')[1]
+                })
+            });
+
+            if (response2.ok) {
+                const data = await response2.json();
+                console.log('LogMeal combo API response:', data);
                 return this.parseLogMealResponse(data);
             }
         } catch (error) {
-            console.log('LogMeal API failed, trying alternative...');
+            console.error('LogMeal combo API failed:', error);
         }
 
-        // Alternative: Use Google Cloud Vision API (requires setup)
-        // For now, return null to trigger fallback
         return null;
     }
 
     parseLogMealResponse(data) {
+        console.log('Parsing LogMeal response:', data);
+        
+        // Try different response formats
+        let results = [];
+        
         if (data && data.recognition_results) {
-            return data.recognition_results.map(item => ({
-                name: item.name,
-                confidence: item.confidence,
-                calories: item.nutrition?.calories || this.estimateCalories(item.name),
-                protein: item.nutrition?.protein || this.estimateProtein(item.name),
-                carbs: item.nutrition?.carbs || this.estimateCarbs(item.name),
-                fat: item.nutrition?.fat || this.estimateFat(item.name)
+            results = data.recognition_results;
+        } else if (data && data.results) {
+            results = data.results;
+        } else if (data && Array.isArray(data)) {
+            results = data;
+        } else if (data && data.food_recognition) {
+            results = data.food_recognition;
+        }
+        
+        if (results && results.length > 0) {
+            return results.map(item => ({
+                name: item.name || item.food_name || item.dish_name || 'Unknown Food',
+                confidence: item.confidence || item.confidence_score || 0.8,
+                calories: item.nutrition?.calories || item.calories || this.estimateCalories(item.name || item.food_name || item.dish_name),
+                protein: item.nutrition?.protein || item.protein || this.estimateProtein(item.name || item.food_name || item.dish_name),
+                carbs: item.nutrition?.carbs || item.carbs || this.estimateCarbs(item.name || item.food_name || item.dish_name),
+                fat: item.nutrition?.fat || item.fat || this.estimateFat(item.name || item.food_name || item.dish_name)
             }));
         }
+        
+        console.log('No valid results found in response');
         return [];
     }
 
