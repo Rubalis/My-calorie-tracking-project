@@ -103,13 +103,13 @@ class CalorieTracker {
         foodSearch.addEventListener('input', (e) => {
             clearTimeout(this.searchTimeout);
             this.searchTimeout = setTimeout(() => {
-                this.performSearch(e.target.value);
+                this.searchFood(e.target.value);
             }, 300);
         });
 
         foodSearch.addEventListener('focus', () => {
             if (foodSearch.value.trim()) {
-                this.performSearch(foodSearch.value);
+                this.searchFood(foodSearch.value);
             }
         });
 
@@ -787,8 +787,20 @@ class CalorieTracker {
             let foodResults = await this.recognizeFoodWithAPI(base64);
             
             if (!foodResults || foodResults.length === 0) {
-                // Fallback to local food recognition simulation
-                foodResults = this.simulateFoodRecognition();
+                console.log('No API results, showing error instead of fallback foods');
+                this.showNotification('Food recognition failed. Please try a clearer photo or check your internet connection.', 'error');
+                document.getElementById('identifiedFoods').innerHTML = `
+                    <div class="no-results">
+                        <p>❌ Food recognition failed</p>
+                        <p>Please try:</p>
+                        <ul>
+                            <li>Better lighting</li>
+                            <li>Clearer photo</li>
+                            <li>Check internet connection</li>
+                        </ul>
+                    </div>
+                `;
+                return;
             }
 
             this.displayFoodResults(foodResults);
@@ -797,16 +809,22 @@ class CalorieTracker {
             console.error('Food recognition failed:', error);
             this.showNotification('Food recognition failed. Please try again.', 'error');
             
-            // Show fallback results
-            const fallbackResults = this.simulateFoodRecognition();
-            this.displayFoodResults(fallbackResults);
+            // Show error instead of fallback foods
+            document.getElementById('identifiedFoods').innerHTML = `
+                <div class="no-results">
+                    <p>❌ Error occurred during analysis</p>
+                    <p>Please try again or contact support</p>
+                </div>
+            `;
         } finally {
             analyzeBtn.textContent = originalText;
             analyzeBtn.disabled = false;
         }
     }
 
-        async recognizeFoodWithAPI(base64Image) {
+    async recognizeFoodWithAPI(base64Image) {
+        console.log('Starting food recognition with LogMeal API...');
+        
         try {
             // Try LogMeal API with correct endpoint and format
             const response = await fetch('https://api.logmeal.es/v2/recognition/dish', {
@@ -820,21 +838,30 @@ class CalorieTracker {
                 })
             });
 
+            console.log('LogMeal API response status:', response.status);
+
             if (response.ok) {
                 const data = await response.json();
-                console.log('LogMeal API response:', data); // Debug log
-                return this.parseLogMealResponse(data);
+                console.log('LogMeal API response data:', data);
+                
+                if (data && (data.recognition_results || data.results || Array.isArray(data))) {
+                    console.log('Valid API response received, parsing...');
+                    return this.parseLogMealResponse(data);
+                } else {
+                    console.log('API response format not recognized:', data);
+                }
             } else {
                 console.log('LogMeal API error:', response.status, response.statusText);
                 const errorText = await response.text();
                 console.log('Error details:', errorText);
             }
         } catch (error) {
-            console.error('LogMeal API failed:', error);
+            console.error('LogMeal API request failed:', error);
         }
 
         // Try alternative LogMeal endpoint
         try {
+            console.log('Trying alternative LogMeal endpoint...');
             const response2 = await fetch('https://api.logmeal.es/v2/recognition/combo', {
                 method: 'POST',
                 headers: {
@@ -849,12 +876,16 @@ class CalorieTracker {
             if (response2.ok) {
                 const data = await response2.json();
                 console.log('LogMeal combo API response:', data);
-                return this.parseLogMealResponse(data);
+                
+                if (data && (data.recognition_results || data.results || Array.isArray(data))) {
+                    return this.parseLogMealResponse(data);
+                }
             }
         } catch (error) {
             console.error('LogMeal combo API failed:', error);
         }
 
+        console.log('All API attempts failed, returning null');
         return null;
     }
 
@@ -981,7 +1012,7 @@ class CalorieTracker {
         this.dailyLog[currentMeal].push(foodData);
         
         this.saveData();
-        this.updateUI();
+        this.updateDisplay();
         this.updateCharts();
         
         this.showNotification(`Added ${name} to your ${currentMeal}!`, 'success');
