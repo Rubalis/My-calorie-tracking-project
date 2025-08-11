@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- PWA Meta Tags for iPhone -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CalorieTracker">
+    
+    <!-- iPhone Icons -->
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#48bb78">
+    
+    <title>CalorieTracker - Track Your Nutrition</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <span class="icon">🍎</span>
+                    CalorieTracker
+                </h1>
+                <div class="date-display" id="currentDate"></div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Daily Summary Card -->
+            <section class="summary-card">
+                <h2>Today's Summary</h2>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <span class="label">Calories</span>
+                        <span class="value" id="totalCalories">0</span>
+                        <span class="target">/ 2000</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Protein</span>
+                        <span class="value" id="totalProtein">0g</span>
+                        <span class="target">/ 150g</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Carbs</span>
+                        <span class="value" id="totalCarbs">0g</span>
+                        <span class="target">/ 250g</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Fat</span>
+                        <span class="value" id="totalFat">0g</span>
+                        <span class="target">/ 65g</span>
+                    </div>
+                </div>
+                <div class="calorie-bar">
+                    <div class="calorie-progress" id="calorieProgress"></div>
+                </div>
+            </section>
+
+            <!-- Add Food Section -->
+            <section class="add-food-section">
+                <h2>Add Food</h2>
+                <div class="search-container">
+                    <input type="text" id="foodSearch" placeholder="Search for food... (type to search)" class="food-search">
+                    <div class="search-suggestions"></div>
+                </div>
+                <div class="quick-add">
+                    <h3>Quick Add Common Foods</h3>
+                    <div class="quick-add-grid">
+                        <button class="quick-add-btn" data-food="apple">🍎 Apple (95 cal)</button>
+                        <button class="quick-add-btn" data-food="banana">🍌 Banana (105 cal)</button>
+                        <button class="quick-add-btn" data-food="chicken">🍗 Chicken Breast (165 cal)</button>
+                        <button class="quick-add-btn" data-food="rice">🍚 Rice (130 cal)</button>
+                        <button class="quick-add-btn" data-food="salmon">🐟 Salmon (208 cal)</button>
+                        <button class="quick-add-btn" data-food="eggs">🥚 Eggs (140 cal)</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Photo Capture Section -->
+            <section class="photo-capture-section">
+                <h2>Photo Food Recognition</h2>
+                <div class="photo-controls">
+                    <button id="cameraBtn" class="camera-btn">
+                        <span class="camera-icon">📷</span>
+                        Take Photo
+                    </button>
+                    <input type="file" id="photoUpload" accept="image/*" capture="environment" style="display: none;">
+                    <button id="uploadBtn" class="upload-btn">
+                        <span class="upload-icon">📁</span>
+                        Upload Photo
+                    </button>
+                </div>
+                <div class="photo-preview" id="photoPreview" style="display: none;">
+                    <img id="previewImage" alt="Food photo preview">
+                    <div class="photo-actions">
+                        <button id="analyzeBtn" class="analyze-btn">Analyze Food</button>
+                        <button id="retakeBtn" class="retake-btn">Retake</button>
+                    </div>
+                </div>
+                <div class="photo-results" id="photoResults" style="display: none;">
+                    <h3>Identified Foods</h3>
+                    <div class="identified-foods" id="identifiedFoods"></div>
+                </div>
+            </section>
+
+            <!-- Daily Log -->
+            <section class="daily-log">
+                <h2>Today's Meals</h2>
+                <div class="meal-tabs">
+                    <button class="meal-tab active" data-meal="breakfast">Breakfast</button>
+                    <button class="meal-tab" data-meal="lunch">Lunch</button>
+                    <button class="meal-tab" data-meal="dinner">Dinner</button>
+                    <button class="meal-tab" data-meal="snacks">Snacks</button>
+                </div>
+                <div class="meal-content">
+                    <div class="meal-list" id="breakfastList"></div>
+                    <div class="meal-list" id="lunchList"></div>
+                    <div class="meal-list" id="dinnerList"></div>
+                    <div class="meal-list" id="snacksList"></div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <h2>Nutrition Analytics</h2>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Daily Calories</h3>
+                        <canvas id="caloriesChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Macro Distribution</h3>
+                        <canvas id="macrosChart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add Food Modal -->
+    <div class="modal" id="addFoodModal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add Custom Food</h2>
+            <form id="customFoodForm">
+                <div class="form-group">
+                    <label for="foodName">Food Name</label>
+                    <input type="text" id="foodName" required>
+                </div>
+                <div class="form-group">
+                    <label for="foodCalories">Calories</label>
+                    <input type="number" id="foodCalories" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="foodProtein">Protein (g)</label>
+                        <input type="number" id="foodProtein" step="0.1" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="foodCarbs">Carbs (g)</label>
+                        <input type="number" id="foodCarbs" step="0.1" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="foodFat">Fat (g)</label>
+                        <input type="number" id="foodFat" step="0.1" value="0">
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">Add Food</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

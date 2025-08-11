@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Generator for CalorieTracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .icon-preview {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px auto;
+        }
+        .download-btn {
+            background: #48bb78;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .download-btn:hover {
+            background: #38a169;
+        }
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .icon-sizes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .icon-size {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 CalorieTracker App Icon Generator</h1>
+        
+        <div class="icon-preview">CT</div>
+        
+        <p>This tool will help you create the app icons needed for your iPhone app. Click the buttons below to download different icon sizes.</p>
+        
+        <div class="icon-sizes">
+            <div class="icon-size">
+                <h3>72x72</h3>
+                <button class="download-btn" onclick="downloadIcon(72)">Download</button>
+            </div>
+            <div class="icon-size">
+                <h3>96x96</h3>
+                <button class="download-btn" onclick="downloadIcon(96)">Download</button>
+            </div>
+            <div class="icon-size">
+                <h3>128x128</h3>
+                <button class="download-btn" onclick="downloadIcon(128)">Download</button>
+            </div>
+            <div class="icon-size">
+                <h3>144x144</h3>
+                <button class="download-btn" onclick="downloadIcon(144)">Download</button>
+            </div>
+            <div class="icon-size">
+                <h3>152x152</h3>
+                <button class="download-btn" onclick="downloadIcon(152)">Download</button>
+            </div>
+            <div class="icon-size">
+                <h3>192x192</h3>
+                <button class="download-btn" onclick="downloadIcon(192)">Download</button>
+            </div>
+            <div class="icon-size">
+                <h3>384x384</h3>
+                <button class="download-btn" onclick="downloadIcon(384)">Download</button>
+            </div>
+            <div class="icon-size">
+                <h3>512x512</h3>
+                <button class="download-btn" onclick="downloadIcon(512)">Download</button>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📱 How to Install on iPhone:</h3>
+            <ol>
+                <li><strong>Open Safari</strong> on your iPhone</li>
+                <li><strong>Go to your app URL</strong> (you'll need to host this online)</li>
+                <li><strong>Tap the Share button</strong> (square with arrow up)</li>
+                <li><strong>Scroll down and tap "Add to Home Screen"</strong></li>
+                <li><strong>Customize the name</strong> if you want</li>
+                <li><strong>Tap "Add"</strong></li>
+            </ol>
+            
+            <h3>🚀 Next Steps:</h3>
+            <ol>
+                <li>Download all the icon sizes above</li>
+                <li>Create an "icons" folder in your project</li>
+                <li>Save all icons in that folder</li>
+                <li>Host your app online (GitHub Pages, Netlify, etc.)</li>
+                <li>Install on your iPhone!</li>
+            </ol>
+        </div>
+        
+        <h3>💡 Alternative: Use a Real Icon</h3>
+        <p>For a more professional look, you can create a custom icon using tools like:</p>
+        <ul>
+            <li><strong>Canva</strong> - Free online design tool</li>
+            <li><strong>Figma</strong> - Professional design tool</li>
+            <li><strong>Adobe Illustrator</strong> - Professional vector graphics</li>
+        </ul>
+        <p>Just make sure to export it in all the sizes listed above!</p>
+    </div>
+
+    <script>
+        function downloadIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#48bb78');
+            gradient.addColorStop(1, '#38a169');
+            
+            // Fill background
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Add rounded corners
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, size * 0.2);
+            ctx.fill();
+            
+            // Reset composite operation
+            ctx.globalCompositeOperation = 'source-over';
+            
+            // Add text
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.4}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('CT', size/2, size/2);
+            
+            // Download
+            const link = document.createElement('a');
+            link.download = `icon-${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Add roundRect polyfill for older browsers
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>
